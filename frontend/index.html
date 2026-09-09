@@ -1,426 +1,460 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Plant Health Assistant</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title data-i18n="footer_text">AI Smart Agriculture — Plant Health Assistant</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="style.css" rel="stylesheet"/>
 </head>
 <body>
-
 <!-- ============ NAVIGATION ============ -->
 <header class="navbar" id="navbar">
-  <div class="navbar-inner">
-    <a class="brand" href="#top">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="26" height="26">
-          <path d="M16 29C16 29 6 23.5 6 14.5C6 8.7 10.7 4 16.5 4C16.5 4 16 15 16 29Z" fill="var(--color-primary)"/>
-          <path d="M16 29C16 29 26 23.5 26 14.5C26 9.6 22.3 5.5 17.5 4.2" fill="none" stroke="var(--color-primary-dark)" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>
-      </span>
-      <span class="brand-name">Smart Agriculture Assistant</span>
-    </a>
-    <nav class="nav-links" aria-label="Primary">
-      <a href="#top">Home</a>
-      <a href="#detect">Disease Detection</a>
-      <a href="#assistant">AI Assistant</a>
-      <a href="#history">Scan History</a>
-    </nav>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-  <nav class="nav-links-mobile" id="navLinksMobile" aria-label="Primary mobile">
-    <a href="#top">Home</a>
-    <a href="#detect">Disease Detection</a>
-    <a href="#assistant">AI Assistant</a>
-    <a href="#history">Scan History</a>
-  </nav>
+<div class="navbar-inner">
+<a class="brand" href="#top">
+<span aria-hidden="true" class="brand-mark">
+<svg height="26" viewbox="0 0 32 32" width="26">
+<path d="M16 29C16 29 6 23.5 6 14.5C6 8.7 10.7 4 16.5 4C16.5 4 16 15 16 29Z" fill="var(--color-primary)"></path>
+<path d="M16 29C16 29 26 23.5 26 14.5C26 9.6 22.3 5.5 17.5 4.2" fill="none" stroke="var(--color-primary-dark)" stroke-linecap="round" stroke-width="1.4"></path>
+</svg>
+</span>
+<span class="brand-name" data-i18n="brand_name">AI Smart Agriculture</span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a data-i18n="home" href="#top">Home</a>
+<a data-i18n="diagnose" href="#detect">Diagnose</a>
+<a data-i18n="crop_health" href="#crop-health">Crop Health</a>
+<a data-i18n="environment" href="#environmental-risk">Environment</a>
+<a data-i18n="assistant" href="#assistant">Assistant</a>
+<a data-i18n="history" href="#history">History</a>
+</nav>
+<button aria-expanded="false" aria-label="Toggle navigation menu" class="nav-toggle" id="navToggle">
+<span></span><span></span><span></span>
+</button><select aria-label="Select language" class="language-select" id="languageSelect"><option data-i18n="lang_en" value="en">English</option><option data-i18n="lang_hi" value="hi">हिंदी</option><option data-i18n="lang_mr" value="mr">मराठी</option></select>
+</div>
+<nav aria-label="Primary mobile" class="nav-links-mobile" id="navLinksMobile">
+<a data-i18n="home" href="#top">Home</a>
+<a data-i18n="diagnose" href="#detect">Diagnose</a>
+<a data-i18n="crop_health" href="#crop-health">Crop Health</a>
+<a data-i18n="environment" href="#environmental-risk">Environment</a>
+<a data-i18n="assistant" href="#assistant">Assistant</a>
+<a data-i18n="history" href="#history">History</a>
+</nav>
 </header>
-
 <main>
-
 <!-- ============ HERO ============ -->
 <section class="hero" id="top">
-  <div class="hero-inner">
-    <div class="hero-copy">
-      <p class="hero-eyebrow">Leaf-level diagnostics, powered by a trained vision model</p>
-      <h1 class="hero-title">Detect. Understand. Protect.</h1>
-      <p class="hero-sub">Upload a plant leaf image and let the model identify possible diseases, show you exactly where it looked to make that call, and hand you practical, disease-specific care guidance.</p>
-      <div class="hero-actions">
-        <a href="#detect" class="btn btn-primary" id="ctaAnalyze">Analyze Your Plant</a>
-        <a href="#assistant" class="btn btn-ghost">Meet the AI Assistant</a>
-      </div>
-      <dl class="hero-stats">
-        <div>
-          <dt>38</dt>
-          <dd>Crop &amp; disease classes</dd>
-        </div>
-        <div>
-          <dt>ResNet50</dt>
-          <dd>Transfer-learned classifier</dd>
-        </div>
-        <div>
-          <dt>Grad-CAM</dt>
-          <dd>Visual model reasoning</dd>
-        </div>
-      </dl>
-    </div>
-    <div class="hero-visual" aria-hidden="true">
-      <svg viewBox="0 0 420 420" class="hero-leaf">
-        <path d="M210 40C130 60 70 140 70 230C70 320 140 380 210 390C280 380 350 320 350 230C350 140 290 60 210 40Z" class="leaf-body"/>
-        <path d="M210 60V380" class="leaf-vein-main"/>
-        <path d="M210 110L150 150M210 110L270 150M210 170L140 210M210 170L280 210M210 230L150 270M210 230L270 270M210 290L165 320M210 290L255 320" class="leaf-vein"/>
-        <g class="scan-grid">
-          <rect x="95" y="95" width="230" height="230" rx="18"/>
-          <line x1="95" y1="160" x2="325" y2="160"/>
-          <line x1="95" y1="225" x2="325" y2="225"/>
-          <line x1="95" y1="290" x2="325" y2="290"/>
-          <line x1="160" y1="95" x2="160" y2="325"/>
-          <line x1="225" y1="95" x2="225" y2="325"/>
-          <line x1="290" y1="95" x2="290" y2="325"/>
-        </g>
-      </svg>
-    </div>
-  </div>
+<div class="hero-inner">
+<div class="hero-copy">
+<p class="hero-eyebrow" data-i18n="hero_eyebrow">Leaf-level diagnostics, powered by a trained vision model</p>
+<h1 class="hero-title" data-i18n="hero_title">Detect. Understand. Protect.</h1>
+<p class="hero-sub" data-i18n="hero_sub">Upload a plant leaf image and the model identifies possible diseases, shows exactly where it looked to make that call, and hands you practical, disease-specific care guidance.</p>
+<div class="hero-actions">
+<a class="btn btn-primary" data-i18n="analyze_plant" href="#detect" id="ctaAnalyze">Analyze a plant</a>
+<a class="btn btn-ghost" data-i18n="talk_assistant" href="#assistant">Talk to the assistant</a>
+</div>
+<p class="hero-value-line" data-i18n="hero_value">From leaf analysis to environmental context and practical care — key plant-health insights, together in one place.</p>
+</div>
+<div aria-hidden="true" class="hero-visual">
+<svg class="hero-leaf" viewbox="0 0 420 420">
+<path class="leaf-body" d="M210 40C130 60 70 140 70 230C70 320 140 380 210 390C280 380 350 320 350 230C350 140 290 60 210 40Z"></path>
+<path class="leaf-vein-main" d="M210 60V380"></path>
+<path class="leaf-vein" d="M210 110L150 150M210 110L270 150M210 170L140 210M210 170L280 210M210 230L150 270M210 230L270 270M210 290L165 320M210 290L255 320"></path>
+<g class="scan-grid">
+<rect height="230" rx="18" width="230" x="95" y="95"></rect>
+<line x1="95" x2="325" y1="160" y2="160"></line>
+<line x1="95" x2="325" y1="225" y2="225"></line>
+<line x1="95" x2="325" y1="290" y2="290"></line>
+<line x1="160" x2="160" y1="95" y2="325"></line>
+<line x1="225" x2="225" y1="95" y2="325"></line>
+<line x1="290" x2="290" y1="95" y2="325"></line>
+</g>
+</svg>
+</div>
+</div>
 </section>
-
 <!-- ============ DISEASE DETECTION ============ -->
 <section class="section" id="detect">
-  <div class="section-inner">
-    <div class="section-head">
-      <h2>Disease Detection</h2>
-      <p>Upload a clear photo of a single leaf. The model works best with good lighting and the leaf filling most of the frame.</p>
-    </div>
-
-    <div class="detect-grid">
-      <!-- Upload panel -->
-      <div class="panel upload-panel">
-        <div class="dropzone" id="dropzone" tabindex="0" role="button"
-             aria-label="Upload a plant leaf image, click or drag and drop">
-          <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
-          <div class="dropzone-content" id="dropzoneContent">
-            <svg viewBox="0 0 48 48" width="40" height="40" class="dropzone-icon" aria-hidden="true">
-              <path d="M24 6v24M24 6l-9 9M24 6l9 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M9 32v6a3 3 0 0 0 3 3h24a3 3 0 0 0 3-3v-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-            </svg>
-            <p class="dropzone-title">Drag and drop a leaf image</p>
-            <p class="dropzone-sub">or click to browse &nbsp;·&nbsp; JPG, PNG, WEBP</p>
-          </div>
-          <div class="preview-content hidden" id="previewContent">
-            <img id="previewImage" alt="Selected leaf preview">
-            <button type="button" class="btn-text" id="changeImageBtn">Choose a different image</button>
-          </div>
-        </div>
-
-        <p class="form-error hidden" id="uploadError" role="alert"></p>
-
-        <button class="btn btn-primary btn-full" id="analyzeBtn" disabled>Analyze Leaf</button>
-
-        <div class="loading-row hidden" id="loadingRow" aria-live="polite">
-          <span class="spinner" aria-hidden="true"></span>
-          <span id="loadingText">Analyzing your plant…</span>
-        </div>
-
-        <p class="api-error hidden" id="apiError" role="alert"></p>
-      </div>
-
-      <!-- Results panel -->
-      <div class="panel results-panel hidden" id="resultsPanel">
-        <div class="result-header">
-          <div>
-            <p class="result-eyebrow" id="resultCropLabel">Crop</p>
-            <h3 class="result-title" id="resultDiseaseName">—</h3>
-            <p class="result-technical" id="resultTechnicalName"></p>
-          </div>
-          <div class="confidence-badge">
-            <svg viewBox="0 0 72 72" class="confidence-ring" aria-hidden="true">
-              <circle cx="36" cy="36" r="30" class="ring-track"/>
-              <circle cx="36" cy="36" r="30" class="ring-value" id="confidenceRing"/>
-            </svg>
-            <div class="confidence-text">
-              <span id="confidenceValue">0%</span>
-              <small>confidence</small>
-            </div>
-          </div>
-        </div>
-        <div class="top-predictions-section">
-    <h3>Top Predictions</h3>
-    <div id="topPredictions"></div>
+<div class="section-inner">
+<div class="section-head">
+<h2 data-i18n="diagnose_leaf">Diagnose a leaf</h2>
+<p data-i18n="diagnose_help">Upload a clear photo of a single leaf. Good lighting and a leaf that fills most of the frame gives the model the best chance of a confident read.</p>
 </div>
+<!-- Upload panel -->
+<div class="upload-row">
+<div class="panel upload-panel">
+<div aria-label="Upload a plant leaf image, click or drag and drop" class="dropzone" data-i18n-aria="upload_aria" id="dropzone" role="button" tabindex="0">
+<input accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden="" id="fileInput" type="file"/>
+<div class="dropzone-content" id="dropzoneContent">
+<svg aria-hidden="true" class="dropzone-icon" height="36" viewbox="0 0 48 48" width="36">
+<path d="M24 6v24M24 6l-9 9M24 6l9 9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+<path d="M9 32v6a3 3 0 0 0 3 3h24a3 3 0 0 0 3-3v-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path>
+</svg>
+<p class="dropzone-title" data-i18n="drop_title">Drag and drop a leaf image</p>
+<p class="dropzone-sub" data-i18n="drop_sub">or click to browse  ·  JPG, PNG, WEBP</p>
+</div>
+<div class="preview-content hidden" id="previewContent">
+<img alt="Selected leaf preview" id="previewImage"/>
+<button class="btn-text" data-i18n="choose_different" id="changeImageBtn" type="button">Choose a different image</button>
+</div>
+</div>
+<p class="form-error hidden" id="uploadError" role="alert"></p>
 <div class="image-quality-card hidden" id="imageQualityCard">
-    <div class="image-quality-header">
-        <span class="quality-status-dot" id="qualityStatusDot"></span>
-
-        <div>
-            <h4>Image Quality Check</h4>
-            <span id="qualityStatus">—</span>
-        </div>
-    </div>
-
-    <p id="qualityMessage"></p>
-
-    <div class="quality-details" id="qualityDetails"></div>
+<div class="image-quality-header">
+<span class="quality-status-dot" id="qualityStatusDot"></span>
+<div>
+<h4 data-i18n="image_quality">Image quality</h4>
+<span id="qualityStatus">—</span>
+</div>
+</div>
+<p id="qualityMessage"></p>
+<div class="quality-details" id="qualityDetails"></div>
+</div>
+<button class="btn btn-primary btn-full" data-i18n="analyze_leaf" disabled="" id="analyzeBtn">Analyze Leaf</button>
+<div aria-live="polite" class="loading-row hidden" id="loadingRow">
+<span aria-hidden="true" class="spinner"></span>
+<span data-i18n="analyzing" id="loadingText">Analyzing your plant…</span>
+</div>
+<p class="api-error hidden" id="apiError" role="alert"></p>
+</div>
+</div>
+<!-- Results: Analysis Overview -->
+<div class="results-panel hidden" id="resultsPanel">
+<div class="overview-lede">
+<span class="section-kicker" data-i18n="analysis_overview">Analysis overview</span>
+<p data-i18n="analysis_overview_desc">Diagnosis, model attention, and practical care — presented together before the supporting analysis.</p>
+</div>
+<div class="overview-grid overview-grid-primary">
+<!-- DIAGNOSIS -->
+<article class="overview-card diagnosis-card">
+<div class="overview-card-head">
+<span class="overview-eyebrow" data-i18n="crop_label" id="resultCropLabel">Crop</span>
+<h3 data-i18n="diagnosis">Diagnosis</h3>
+</div>
+<div class="diagnosis-main">
+<div class="diagnosis-text">
+<h3 class="result-title" id="resultDiseaseName">—</h3>
+<p class="result-technical hidden" id="resultTechnicalName"></p>
+</div>
+<div class="confidence-badge">
+<svg aria-hidden="true" class="confidence-ring" viewbox="0 0 72 72">
+<circle class="ring-track" cx="36" cy="36" r="30"></circle>
+<circle class="ring-value" cx="36" cy="36" id="confidenceRing" r="30"></circle>
+</svg>
+<div class="confidence-text">
+<span id="confidenceValue">0%</span>
+<small data-i18n="confidence">confidence</small>
+</div>
+</div>
 </div>
 <div class="confidence-assessment" id="confidenceAssessment">
-    <div class="confidence-assessment-header">
-        <span class="confidence-status-dot" id="confidenceStatusDot"></span>
-        <div>
-            <h4>Diagnosis Confidence</h4>
-            <span id="confidenceStatus">—</span>
-        </div>
-    </div>
-
-    <p id="confidenceMessage"></p>
-
-    <div class="confidence-gap">
-        <span>Top-1 vs Top-2 difference</span>
-        <strong id="confidenceGap">—</strong>
-    </div>
+<div class="confidence-assessment-header">
+<span class="confidence-status-dot" id="confidenceStatusDot"></span>
+<div>
+<h4 data-i18n="diagnosis_confidence">Diagnosis confidence</h4>
+<span id="confidenceStatus">—</span>
 </div>
-<div class="severity-assessment hidden" id="severityAssessment">
-
-    <div class="severity-header">
-
-        <span
-            class="severity-status-dot"
-            id="severityStatusDot">
-        </span>
-
-        <div>
-          <h4>Estimated Disease Impact</h4>
-
-            <span id="severityStatus">—</span>
-        </div>
-
-    </div>
-
-    <p id="severityMessage"></p>
-
-    <div class="severity-coverage">
-
-       <span>AI Attention Impact Score</span>
-
-        <strong id="severityCoverage">—</strong>
-
-    </div>
-
-    <small class="severity-note">
-       This score represents the extent of model attention across the visible leaf. It is an image-based AI estimate and should not be interpreted as actual disease severity.
-    </small>
-
 </div>
-
-        <div class="image-compare" id="imageCompare">
-          <figure>
-            <img id="originalImage" alt="Original uploaded leaf">
-            <figcaption>Original Leaf</figcaption>
-          </figure>
-          <figure>
-            <img id="gradcamImage" alt="Grad-CAM attention overlay">
-            <figcaption>AI Attention (Grad-CAM)</figcaption>
-          </figure>
-        </div>
-        <p class="gradcam-note">Grad-CAM highlights the regions of the leaf that contributed most to the model's prediction.</p>
-
-        <div class="disease-info">
-          <div class="info-block" id="descriptionBlock">
-            <h4>About the Disease</h4>
-            <p id="descriptionText"></p>
-          </div>
-
-          <div class="info-block" id="symptomsBlock">
-            <h4>Symptoms</h4>
-            <ul id="symptomsList" class="info-list"></ul>
-          </div>
-
-          <div class="info-block" id="actionsBlock">
-            <h4>Recommended Actions</h4>
-            <ul id="actionsList" class="info-list info-list-check"></ul>
-          </div>
-
-          <div class="info-block" id="preventionBlock">
-            <h4>Prevention</h4>
-            <ul id="preventionList" class="info-list info-list-dot"></ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ AI ASSISTANT ============ -->
-<!-- ============ AI ASSISTANT ============ -->
-<section class="section section-alt" id="assistant">
-  <div class="section-inner">
-    <div class="section-head">
-      <h2>Smart AI Assistant</h2>
-      <p>Ask questions about your plant and detected condition.</p>
-    </div>
-
-    <div class="panel assistant-panel">
-
-      <div class="assistant-status">
-        <span class="status-dot" aria-hidden="true"></span>
-        AI Assistant connected. Analyze a plant image first to ask questions about the detected condition.
-      </div>
-
-      <div class="chat-window" id="assistantMessages" aria-live="polite">
-
-        <div class="chat-message assistant-message">
-          <div class="chat-message-text">
-            Hi! I'm your Smart Agriculture Assistant. Analyze a plant leaf above, and I can answer questions about the detected condition, symptoms, care, and prevention.
-          </div>
-        </div>
-
-      </div>
-
-      <form class="chat-input-row" id="chatForm">
-
-        <label for="chatInput" class="sr-only">
-          Ask a question about your plant
-        </label>
-
-        <input
-          type="text"
-          id="chatInput"
-          placeholder="Ask about your plant..."
-          autocomplete="off"
-        >
-
-        <button
-          type="submit"
-          id="chatSendBtn"
-          class="btn btn-primary"
-        >
-          Send
-        </button>
-
-      </form>
-
-    </div>
-  </div>
-</section>
-<!-- ============ CROP HEALTH HUB ============ -->
-<section class="section" id="crop-health">
-  <div class="section-inner">
-
-    <div class="section-head">
-      <h2>Crop Health Hub</h2>
-      <p>Explore common conditions covered by the plant disease model.</p>
-    </div>
-
-    <div class="panel crop-health-panel">
-
-      <div class="crop-selector-row">
-        <label for="cropSelector">Select a crop</label>
-
-        <select id="cropSelector">
-          <option value="">Choose a crop</option>
-          <option value="Apple">Apple</option>
-          <option value="Blueberry">Blueberry</option>
-          <option value="Cherry">Cherry</option>
-          <option value="Corn">Corn</option>
-          <option value="Grape">Grape</option>
-          <option value="Orange">Orange</option>
-          <option value="Peach">Peach</option>
-          <option value="Pepper">Bell Pepper</option>
-          <option value="Potato">Potato</option>
-          <option value="Raspberry">Raspberry</option>
-          <option value="Soybean">Soybean</option>
-          <option value="Squash">Squash</option>
-          <option value="Strawberry">Strawberry</option>
-          <option value="Tomato">Tomato</option>
-        </select>
-      </div>
-
-      <div id="cropHealthContent" class="crop-health-content hidden">
-
-        <div class="crop-health-header">
-          <div>
-            <span class="section-kicker">Crop overview</span>
-            <h3 id="selectedCropName"></h3>
-          </div>
-
-          <span id="cropDiseaseCount" class="crop-disease-count"></span>
-        </div>
-
-        <div id="cropDiseaseGrid" class="crop-disease-grid"></div>
-
-      </div>
-
-      <div id="cropHealthEmpty" class="crop-health-empty">
-        Select a crop to explore its supported conditions.
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
+<p id="confidenceMessage"></p>
+<div class="confidence-gap">
+<span data-i18n="top1_top2">Top-1 vs Top-2</span>
+<strong id="confidenceGap">—</strong>
+</div>
+</div>
+</article>
+<!-- GRAD-CAM -->
+<article class="overview-card gradcam-card">
+<div class="overview-card-head">
+<span class="overview-eyebrow" data-i18n="explainable_ai">Explainable AI</span>
+<h3 data-i18n="where_model_looked">Where the model looked</h3>
+</div>
+<div class="image-compare hidden" id="imageCompare">
+<figure>
+<img alt="Original uploaded leaf" id="originalImage"/>
+<figcaption data-i18n="original">Original</figcaption>
+</figure>
+<figure>
+<img alt="Grad-CAM attention overlay" id="gradcamImage"/>
+<figcaption data-i18n="gradcam">Grad-CAM</figcaption>
+</figure>
+</div>
+<p class="gradcam-note" data-i18n="gradcam_note">Highlights the leaf regions that contributed most to the model's prediction.</p>
+</article>
+<!-- CARE & PREVENTION -->
+<article class="overview-card care-card">
+<div class="overview-card-head">
+<span class="overview-eyebrow" data-i18n="guidance">Guidance</span>
+<h3 data-i18n="care_prevention">Care &amp; prevention</h3>
+</div>
+<div class="info-block" id="actionsBlock">
+<span class="block-label" data-i18n="recommended_actions">Recommended actions</span>
+<ul class="info-list info-list-check" id="actionsList"></ul>
+</div>
+<details class="care-details" id="descriptionDetail">
+<summary data-i18n="about_condition">About this condition</summary>
+<div class="care-detail-content">
+<p id="descriptionText"></p>
+</div>
+</details>
+<details class="care-details" id="symptomsDetail">
+<summary data-i18n="symptoms">Symptoms</summary>
+<div class="care-detail-content">
+<ul class="info-list" id="symptomsList"></ul>
+</div>
+</details>
+<details class="care-details" id="preventionDetail">
+<summary data-i18n="prevention">Prevention</summary>
+<div class="care-detail-content">
+<ul class="info-list info-list-dot" id="preventionList"></ul>
+</div>
+</details>
+</article>
+</div>
+</div>
+</div></section>
 <!-- ============ DISEASE COMPARISON ============ -->
 <section class="section section-alt" id="disease-comparison">
-
-  <div class="section-inner">
-
-    <div class="section-head">
-      <h2>Prediction Comparison</h2>
-      <p>Compare the model's leading predictions when more than one possibility is relevant.</p>
-    </div>
-
-    <div class="panel comparison-panel">
-
-      <div id="comparisonEmpty" class="comparison-empty">
-        Analyze a plant image first to compare the model's Top-3 predictions.
+<div class="section-inner">
+<div class="section-head">
+<h2 data-i18n="prediction_comparison">Prediction comparison</h2>
+<p data-i18n="prediction_comparison_desc">Compare the model's leading predictions when more than one possibility is relevant.</p>
+</div>
+<div class="panel comparison-panel">
+<div class="comparison-empty" data-i18n="comparison_empty" id="comparisonEmpty">
+        Analyze a plant image first to compare the model's top-3 predictions.
       </div>
-
-      <div id="comparisonContent" class="hidden">
-
-        <div class="comparison-header">
-          <div>
-            <span class="section-kicker">Model comparison</span>
-            <h3>Top Predictions</h3>
-          </div>
-
-          <span id="comparisonNote"></span>
-        </div>
-
-        <div id="comparisonCards" class="comparison-cards"></div>
-
-      </div>
-
-    </div>
-
-  </div>
-
+<div class="hidden" id="comparisonContent">
+<div class="comparison-header">
+<div>
+<span class="section-kicker" data-i18n="model_comparison">Model comparison</span>
+<h3 data-i18n="top_predictions">Top predictions</h3>
+</div>
+<span id="comparisonNote"></span>
+</div>
+<div class="comparison-cards" id="comparisonCards"></div>
+</div>
+</div>
+</div>
 </section>
+<!-- ============ ENVIRONMENTAL RISK ============ -->
+<section class="section environmental-section" id="environmental-risk">
+<div class="section-inner">
+<div class="section-head">
+<span class="section-kicker" data-i18n="environmental_context">Environmental context</span>
+<h2 data-i18n="environmental_risk">Environmental risk</h2>
+<p data-i18n="environmental_desc">Check current weather conditions and see whether they are environmentally favorable for the detected condition.</p>
+</div>
+<div class="panel environmental-panel">
+<div class="weather-toolbar">
+<div>
+<span class="weather-label" data-i18n="detected_condition">Detected condition</span>
+<strong data-i18n="analyze_first" id="weatherDetectedDisease">Analyze a leaf first</strong>
+</div>
+<div class="weather-location-inline">
+<input autocomplete="off" class="weather-location-input" data-i18n-placeholder="weather_placeholder" id="weatherLocationInput" placeholder="City or location, e.g. Pune" type="text"/>
+<button class="btn btn-primary btn-sm" data-i18n="check_risk" id="weatherCheckBtn" type="button">Check risk</button>
+<button class="btn btn-ghost btn-sm" data-i18n="use_my_location" id="weatherLocationBtn" type="button">Use my location</button>
+</div>
+</div>
+<p class="weather-location-status" id="weatherLocationStatus"></p>
+<div class="weather-risk-result hidden" id="weatherRiskResult">
+<div class="weather-current">
+<div>
+<span class="weather-label" data-i18n="location">Location</span>
+<strong id="weatherLocationName">—</strong>
+</div>
+<div>
+<span class="weather-label" data-i18n="temperature">Temperature</span>
+<strong id="weatherTemperature">—</strong>
+</div>
+<div>
+<span class="weather-label" data-i18n="humidity">Humidity</span>
+<strong id="weatherHumidity">—</strong>
+</div>
+<div>
+<span class="weather-label" data-i18n="rain">Rain</span>
+<strong id="weatherRain">—</strong>
+</div>
+</div>
+<div class="weather-risk-grid">
+<div class="weather-risk-item">
+<span data-i18n="current">Current</span>
+<strong id="weatherCurrentRisk">—</strong>
+</div>
+<div class="weather-risk-item">
+<span data-i18n="next_24_hours">Next 24 hours</span>
+<strong id="weather24Risk">—</strong>
+</div>
+<div class="weather-risk-item">
+<span data-i18n="next_7_days">Next 7 days</span>
+<strong id="weather7Risk">—</strong>
+</div>
+</div>
+<details class="weather-more" open="">
+<summary data-i18n="why_risk">Why this risk level?</summary>
+<div class="weather-drivers">
+<h4 data-i18n="risk_drivers">Risk drivers</h4>
+<ul id="weatherDrivers"></ul>
+</div>
+<p class="weather-explanation" id="weatherExplanation"></p>
+<p class="weather-disclaimer" data-i18n="weather_disclaimer">
+            This is an environmental risk advisory based on weather conditions. It does not predict that the disease will develop and does not replace field inspection or expert advice.
+          </p>
+<p class="weather-source" data-i18n="weather_data">
+            Weather data:
+            <a href="https://open-meteo.com/" rel="noopener noreferrer" target="_blank">Open-Meteo</a>
+</p>
+</details>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ============ DECISION SUPPORT ============ -->
+<section class="section section-alt" id="decision-support">
+<div class="section-inner">
+<div class="section-head">
+<span class="section-kicker" data-i18n="decision_support">Decision support</span>
+<h2 data-i18n="action_plan">Priority action plan</h2>
+<p data-i18n="decision_support_desc">Turn the model result and environmental context into a practical sequence of next steps.</p>
+</div>
+<div class="panel decision-panel" id="decisionPanel">
+<div class="decision-summary">
+<div><span class="decision-label" data-i18n="action_priority">Action priority</span><strong id="decisionPriority">—</strong></div>
+<p id="decisionRationale"></p>
+</div>
+<div class="decision-grid">
+<div class="decision-column"><h3 data-i18n="immediate_actions">Immediate</h3><ul id="decisionImmediate"></ul></div>
+<div class="decision-column"><h3 data-i18n="monitoring_actions">Monitor</h3><ul id="decisionMonitoring"></ul></div>
+<div class="decision-column" id="decisionVerificationColumn"><h3 data-i18n="verification">Verification</h3><ul id="decisionVerification"></ul></div>
+</div>
+<p class="decision-basis" id="decisionBasis"></p>
+</div>
+</div>
+</section>
+
+<!-- ============ SIMILAR CASES ============ -->
+<section class="section" id="similar-cases">
+<div class="section-inner">
+<div class="section-head">
+<span class="section-kicker" data-i18n="case_retrieval">Case retrieval</span>
+<h2 data-i18n="similar_cases">Similar leaf cases</h2>
+<p data-i18n="similar_cases_desc">Retrieve visually similar cases from the indexed reference dataset to support comparison with the current prediction.</p>
+</div>
+<div class="panel similar-panel">
+<div class="similar-status" id="similarCasesStatus" data-i18n="similar_cases_waiting">Analyze a leaf to retrieve similar cases.</div>
+<div class="similar-grid" id="similarCasesGrid"></div>
+</div>
+</div>
+</section>
+
+<!-- ============ CROP HEALTH HUB ============ -->
+<section class="section" id="crop-health">
+<div class="section-inner">
+<div class="section-head">
+<h2 data-i18n="crop_health_hub">Crop health hub</h2>
+<p data-i18n="crop_health_desc">Browse the supported crops and the diseases or healthy conditions the vision model can identify for each.</p>
+</div>
+<div class="panel crop-health-panel">
+<div class="crop-selector-row">
+<div>
+<label data-i18n="select_crop" for="cropSelector">Select a crop</label>
+<p class="crop-selector-help" data-i18n="crop_help">Browse the conditions covered by the vision model for that crop. This section is a model-coverage reference, not a separate diagnosis.</p>
+</div>
+<select id="cropSelector">
+<option data-i18n="choose_crop" value="">Choose a crop</option>
+<option data-i18n="crop_apple" value="Apple">Apple</option>
+<option data-i18n="crop_blueberry" value="Blueberry">Blueberry</option>
+<option data-i18n="crop_cherry" value="Cherry">Cherry</option>
+<option data-i18n="crop_corn" value="Corn">Corn</option>
+<option data-i18n="crop_grape" value="Grape">Grape</option>
+<option data-i18n="crop_orange" value="Orange">Orange</option>
+<option data-i18n="crop_peach" value="Peach">Peach</option>
+<option data-i18n="crop_pepper" value="Pepper">Bell Pepper</option>
+<option data-i18n="crop_potato" value="Potato">Potato</option>
+<option data-i18n="crop_raspberry" value="Raspberry">Raspberry</option>
+<option data-i18n="crop_soybean" value="Soybean">Soybean</option>
+<option data-i18n="crop_squash" value="Squash">Squash</option>
+<option data-i18n="crop_strawberry" value="Strawberry">Strawberry</option>
+<option data-i18n="crop_tomato" value="Tomato">Tomato</option>
+</select>
+</div>
+<div class="crop-health-content hidden" id="cropHealthContent">
+<div class="crop-health-header">
+<div>
+<span class="section-kicker" data-i18n="crop_overview">Crop overview</span>
+<h3 id="selectedCropName"></h3>
+</div>
+<span class="crop-disease-count" id="cropDiseaseCount"></span>
+</div>
+<div class="crop-disease-grid" id="cropDiseaseGrid"></div>
+</div>
+<div class="crop-health-empty" data-i18n="crop_empty" id="cropHealthEmpty">
+        Select a crop to explore its supported conditions.
+      </div>
+</div>
+</div>
+</section>
+<!-- ============ AI ASSISTANT DRAWER ============ -->
+<div class="assistant-overlay hidden" id="assistantOverlay"></div>
+<aside aria-hidden="true" aria-labelledby="assistantTitle" aria-modal="true" class="assistant-drawer" id="assistant" role="dialog">
+<div class="assistant-drawer-inner">
+<div class="assistant-drawer-header">
+<div>
+<span class="section-kicker" data-i18n="ai_assistance">AI assistance</span>
+<h2 data-i18n="smart_ai_assistant" id="assistantTitle">Smart AI Assistant</h2>
+<p data-i18n="assistant_desc">Ask questions about your plant and the detected condition.</p>
+</div>
+<button aria-label="Close AI Assistant" class="assistant-close" data-i18n-aria="close_assistant" id="assistantCloseBtn" type="button">
+<span aria-hidden="true">×</span>
+</button>
+</div>
+<div class="assistant-panel">
+<div class="assistant-status" data-i18n="assistant_connected">
+<span aria-hidden="true" class="status-dot"></span>
+        AI assistant connected. Analyze a plant image first to ask questions about the detected condition.
+      </div>
+<div aria-live="polite" class="chat-window" id="assistantMessages">
+<div class="chat-message assistant-message">
+<div class="chat-message-text" data-i18n="assistant_welcome">
+            Hi! I'm your Smart Agriculture Assistant. Analyze a plant leaf above, and I can answer questions about the detected condition, symptoms, care, and prevention.
+          </div>
+</div>
+</div>
+<form class="chat-input-row" id="chatForm">
+<label class="sr-only" for="chatInput">Ask a question about your plant</label>
+<input autocomplete="off" data-i18n-placeholder="assistant_placeholder" id="chatInput" placeholder="Ask about your plant..." type="text"/>
+<button class="btn btn-primary" data-i18n="send" id="chatSendBtn" type="submit">Send</button>
+</form>
+</div>
+</div>
+</aside>
 <!-- ============ SCAN HISTORY ============ -->
 <section class="section" id="history">
-  <div class="section-inner">
-    <div class="section-head section-head-row">
-      <div>
-        <h2>Scan History</h2>
-        <p>Your most recent scans, stored locally on this device.</p>
-      </div>
-      <button class="btn btn-ghost" id="clearHistoryBtn">Clear history</button>
-    </div>
-
-    <div class="panel history-panel">
-      <p class="history-empty" id="historyEmpty">No scans yet. Analyzed leaves will appear here.</p>
-      <ul class="history-list" id="historyList"></ul>
-    </div>
-  </div>
+<div class="section-inner">
+<div class="section-head section-head-row">
+<div>
+<h2 data-i18n="scan_history">Scan history</h2>
+<p data-i18n="history_desc">Your most recent scans, stored locally on this device.</p>
+</div>
+<div class="history-actions">
+<button class="btn btn-ghost btn-sm hidden" data-i18n="show_all" id="historyToggleBtn" type="button">Show all</button>
+<button class="btn btn-ghost" data-i18n="clear_history" id="clearHistoryBtn">Clear history</button>
+</div>
+</div>
+<div class="panel history-panel">
+<p class="history-empty" data-i18n="history_empty" id="historyEmpty">No scans yet. Analyzed leaves will appear here.</p>
+<ul class="history-list" id="historyList"></ul>
+</div>
+</div>
 </section>
-
 </main>
-
 <footer class="site-footer">
-  <p>Smart Plant Health Assistant</p>
+<p data-i18n="footer_text">AI Smart Agriculture — Plant Health Assistant</p>
 </footer>
-
 <script src="script.js"></script>
 </body>
 </html>

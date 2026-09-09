@@ -11,12 +11,22 @@ import base64
 import numpy as np
 import cv2
 import json
+import asyncio
 
 from pydantic import BaseModel
 from google import genai
 
 from torchvision import models, transforms
 from PIL import Image
+from urllib.parse import urlencode
+from urllib.request import urlopen
+from urllib.error import HTTPError, URLError
+import urllib.parse
+
+try:
+    import faiss
+except ImportError:
+    faiss = None
 
 
 # =========================================================
@@ -316,6 +326,817 @@ app.add_middleware(
 
 
 # =========================================================
+# MYMEMORY TRANSLATION (FREE HOSTED API)
+# =========================================================
+MYMEMORY_URL = "https://api.mymemory.translated.net/get"
+SUPPORTED_TRANSLATION_LANGUAGES = {"en", "hi", "mr"}
+
+class TranslateRequest(BaseModel):
+    texts: list[str]
+    target_language: str
+
+def translate_with_mymemory(text: str, target_language: str) -> str:
+    if not text or not text.strip() or target_language == "en":
+        return text
+    params = urllib.parse.urlencode({"q": text, "langpair": f"en|{target_language}"})
+    request = urllib.request.Request(
+        f"{MYMEMORY_URL}?{params}",
+        headers={"User-Agent": "AI-Smart-Agriculture/1.0"}
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            raw_data = response.read()
+        data = json.loads(raw_data.decode("utf-8-sig"))
+        translated = data.get("responseData", {}).get("translatedText")
+        return translated or text
+    except Exception as exc:
+        print(f"MyMemory translation error: {exc}")
+        return text
+
+@app.post("/translate")
+async def translate(request: TranslateRequest):
+    target_language = request.target_language.lower().strip()
+    if target_language not in SUPPORTED_TRANSLATION_LANGUAGES:
+        raise HTTPException(status_code=400, detail="Unsupported translation language.")
+    if not request.texts or target_language == "en":
+        return {"translations": request.texts}
+    translations = []
+    for text in request.texts:
+        translations.append(await asyncio.to_thread(translate_with_mymemory, text, target_language))
+    return {"translations": translations}
+
+
+# =========================================================
+# DECISION SUPPORT ENGINE
+# =========================================================
+def build_decision_plan(disease, confidence, weather_score=None):
+    confidence = max(0.0, min(1.0, float(confidence or 0)))
+    score = None if weather_score is None else float(weather_score)
+    recommendation = RECOMMENDATIONS.get(disease, {})
+    actions = recommendation.get("recommended_actions") or recommendation.get("actions") or []
+    prevention = recommendation.get("prevention") or []
+
+    if score is not None and score >= 75:
+        priority = "High priority"
+        rationale = "Weather conditions are highly favorable for the detected condition, so early field action is advisable."
+    elif score is not None and score >= 50:
+        priority = "Watch closely"
+        rationale = "Weather conditions may favor the detected condition, so closer monitoring and preventive action are advisable."
+    elif confidence < 0.60:
+        priority = "Verify first"
+        rationale = "Model confidence is limited; confirm the condition with a clearer image or field inspection before disease-specific action."
+    else:
+        priority = "Monitor"
+        rationale = "Use the model result as guidance and continue routine field monitoring."
+
+    immediate = [str(x) for x in actions[:2]] or ["Inspect the affected plant and nearby plants for similar symptoms."]
+    monitoring = [str(x) for x in prevention[:2]] or ["Continue regular crop monitoring and sanitation."]
+    verification = []
+    if confidence < 0.75:
+        verification.append("Consider a clearer leaf image or local expert verification before disease-specific treatment.")
+    return {"priority": priority, "rationale": rationale, "immediate_actions": immediate, "monitoring": monitoring, "verification": verification, "basis": {"model_confidence": round(confidence*100,2), "weather_score": None if score is None else round(score,1)}}
+
+class DecisionPlanRequest(BaseModel):
+    disease: str
+    confidence: float
+    weather_score: float | None = None
+
+@app.post("/decision-plan")
+def decision_plan(request: DecisionPlanRequest):
+    return build_decision_plan(request.disease, request.confidence, request.weather_score)
+
+
+# =========================================================
+# IMAGE SIMILARITY / REFERENCE CASE RETRIEVAL
+# =========================================================
+SIMILARITY_INDEX_PATH = os.path.join(os.path.dirname(__file__), "similarity_index.faiss")
+SIMILARITY_METADATA_PATH = os.path.join(os.path.dirname(__file__), "similarity_metadata.json")
+SIMILARITY_EMBEDDINGS_PATH = os.path.join(os.path.dirname(__file__), "similarity_embeddings.npy")
+_similarity_model = None
+
+
+def _load_similarity_store():
+    if not os.path.exists(SIMILARITY_METADATA_PATH):
+        return None, None
+    try:
+        with open(SIMILARITY_METADATA_PATH, "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+        if faiss is not None and os.path.exists(SIMILARITY_INDEX_PATH):
+            return faiss.read_index(SIMILARITY_INDEX_PATH), metadata
+        if os.path.exists(SIMILARITY_EMBEDDINGS_PATH):
+            return np.load(SIMILARITY_EMBEDDINGS_PATH), metadata
+    except Exception as exc:
+        print(f"Similarity index load error: {exc}")
+    return None, None
+
+
+def _get_embedding_model():
+    global _similarity_model
+    if _similarity_model is not None:
+        return _similarity_model
+    backbone = models.resnet50(weights=None)
+    backbone.fc = nn.Linear(backbone.fc.in_features, len(class_names))
+    checkpoint = torch.load(MODEL_PATH, map_location=device)
+    backbone.load_state_dict(checkpoint["model_state_dict"])
+    backbone.fc = nn.Identity()
+    _similarity_model = backbone.to(device).eval()
+    return _similarity_model
+
+
+def _embedding_from_image(image):
+    tensor = transform(image).unsqueeze(0).to(device)
+    with torch.no_grad():
+        vector = _get_embedding_model()(tensor).flatten(1)
+        vector = F.normalize(vector, p=2, dim=1)
+    return vector.cpu().numpy().astype("float32")
+
+
+def find_similar_cases(image, predicted_class, k=5):
+    store, metadata = _load_similarity_store()
+    if store is None or not metadata:
+        return []
+    query = _embedding_from_image(image)
+    k = min(int(k), len(metadata))
+    if faiss is not None and hasattr(store, "search"):
+        scores, indices = store.search(query, k)
+        scores, indices = scores[0], indices[0]
+    else:
+        similarities = np.asarray(store) @ query[0]
+        indices = np.argsort(-similarities)[:k]
+        scores = similarities[indices]
+    results=[]
+    for score, idx in zip(scores, indices):
+        idx=int(idx)
+        if idx<0 or idx>=len(metadata): continue
+        item=dict(metadata[idx])
+        item["similarity"]=round(float(score)*100,2)
+        item["same_condition"] = str(item.get("label", "")) == str(predicted_class)
+        try:
+            ref_image = Image.open(item["path"]).convert("RGB")
+            ref_image.thumbnail((180, 180))
+            buf = io.BytesIO()
+            ref_image.save(buf, format="JPEG", quality=72)
+            item["thumbnail"] = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
+        except Exception:
+            item["thumbnail"] = None
+        results.append(item)
+    return results
+
+@app.post("/similar-cases")
+async def similar_cases(file: UploadFile = File(...), predicted_class: str = ""):
+    contents = await file.read()
+    try:
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image file.")
+    store, _ = _load_similarity_store()
+    return {"available": store is not None, "predicted_class": predicted_class, "cases": find_similar_cases(image, predicted_class, 5)}
+
+# =========================================================
+# WEATHER-AWARE DISEASE RISK ENGINE
+# =========================================================
+
+OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
+
+
+class WeatherRiskRequest(BaseModel):
+    disease: str
+    latitude: float
+    longitude: float
+
+
+def fetch_json(url, params):
+    """
+    Fetch JSON data using Python's standard library.
+    No extra package/API key required.
+    """
+    query = urlencode(params)
+    full_url = f"{url}?{query}"
+
+    try:
+        with urlopen(full_url, timeout=10) as response:
+            return json.loads(response.read().decode("utf-8"))
+
+    except HTTPError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Weather service returned HTTP {e.code}"
+        )
+
+    except URLError:
+        raise HTTPException(
+            status_code=502,
+            detail="Unable to reach the weather service."
+        )
+
+    except Exception:
+        raise HTTPException(
+            status_code=502,
+            detail="Unable to retrieve weather data."
+        )
+
+
+def get_weather_profile(disease):
+    """
+    Returns a transparent rule-based environmental profile.
+
+    This is NOT a disease prediction model.
+    It estimates whether current/forecast weather
+    resembles conditions that can favor the detected condition.
+    """
+
+    disease_lower = disease.lower()
+
+    # -----------------------------------------------------
+    # Healthy prediction
+    # -----------------------------------------------------
+
+    if "healthy" in disease_lower:
+        return {
+            "type": "healthy",
+            "label": "No disease-specific risk",
+            "min_temp": None,
+            "max_temp": None,
+            "moisture_sensitive": False
+        }
+
+    # -----------------------------------------------------
+    # Late blight
+    # -----------------------------------------------------
+
+    if "late_blight" in disease_lower:
+        return {
+            "type": "cool_wet",
+            "label": "Cool and wet conditions",
+            "min_temp": 15.5,
+            "max_temp": 21.0,
+            "moisture_sensitive": True
+        }
+
+    # -----------------------------------------------------
+    # Apple scab
+    # -----------------------------------------------------
+
+    if "apple_scab" in disease_lower:
+        return {
+            "type": "apple_scab",
+            "label": "Leaf-wetness and moderate temperatures",
+            "min_temp": 10.0,
+            "max_temp": 24.0,
+            "moisture_sensitive": True
+        }
+
+    # -----------------------------------------------------
+    # Powdery mildew
+    # -----------------------------------------------------
+
+    if "powdery_mildew" in disease_lower:
+        return {
+            "type": "powdery_mildew",
+            "label": "Humid conditions with suitable temperatures",
+            "min_temp": 18.0,
+            "max_temp": 27.0,
+            "moisture_sensitive": True
+        }
+
+    # -----------------------------------------------------
+    # Spider mites
+    # -----------------------------------------------------
+
+    if "spider_mites" in disease_lower:
+        return {
+            "type": "hot_dry",
+            "label": "Hot and dry conditions",
+            "min_temp": 28.0,
+            "max_temp": 40.0,
+            "moisture_sensitive": False
+        }
+
+    # -----------------------------------------------------
+    # Bacterial diseases
+    # -----------------------------------------------------
+
+    if "bacterial" in disease_lower:
+        return {
+            "type": "warm_wet",
+            "label": "Warm and wet conditions",
+            "min_temp": 24.0,
+            "max_temp": 30.0,
+            "moisture_sensitive": True
+        }
+
+    # -----------------------------------------------------
+    # Common fungal / leaf-spot diseases
+    # -----------------------------------------------------
+
+    fungal_keywords = [
+        "black_rot",
+        "leaf_blight",
+        "early_blight",
+        "septoria",
+        "target_spot",
+        "gray_leaf_spot",
+        "common_rust",
+        "cedar_apple_rust",
+        "esca",
+        "leaf_scorch"
+    ]
+
+    if any(keyword in disease_lower for keyword in fungal_keywords):
+        return {
+            "type": "humid_fungal",
+            "label": "Humid and moisture-favorable conditions",
+            "min_temp": 18.0,
+            "max_temp": 30.0,
+            "moisture_sensitive": True
+        }
+
+    # -----------------------------------------------------
+    # Viral / conditions where weather is not a direct
+    # disease indicator
+    # -----------------------------------------------------
+
+    viral_keywords = [
+        "virus",
+        "mosaic",
+        "yellow_leaf_curl",
+        "haunglongbing"
+    ]
+
+    if any(keyword in disease_lower for keyword in viral_keywords):
+        return {
+            "type": "limited",
+            "label": "Weather has limited direct relevance",
+            "min_temp": None,
+            "max_temp": None,
+            "moisture_sensitive": False
+        }
+
+    # -----------------------------------------------------
+    # Generic fallback
+    # -----------------------------------------------------
+
+    return {
+        "type": "humid_fungal",
+        "label": "Humidity and moisture-favorable conditions",
+        "min_temp": 18.0,
+        "max_temp": 30.0,
+        "moisture_sensitive": True
+    }
+
+
+def calculate_hourly_risk(
+    profile,
+    temperature,
+    humidity,
+    precipitation,
+    precipitation_probability
+):
+    """
+    Transparent heuristic score from 0-100.
+
+    This score represents environmental suitability,
+    NOT probability that the plant has or will develop disease.
+    """
+
+    profile_type = profile["type"]
+
+    if profile_type == "healthy":
+        return 0, []
+
+    if profile_type == "limited":
+        return 0, [
+            "Weather is not treated as a direct indicator for this condition."
+        ]
+
+    score = 0
+    drivers = []
+
+    # =====================================================
+    # HOT + DRY CONDITIONS
+    # =====================================================
+
+    if profile_type == "hot_dry":
+
+        if temperature >= 32:
+            score += 35
+            drivers.append("Very warm conditions")
+
+        elif temperature >= 28:
+            score += 25
+            drivers.append("Warm conditions")
+
+        if humidity <= 45:
+            score += 30
+            drivers.append("Low humidity")
+
+        elif humidity <= 55:
+            score += 20
+            drivers.append("Relatively dry air")
+
+        if precipitation < 0.5:
+            score += 20
+            drivers.append("Little precipitation")
+
+        return min(score, 100), drivers
+
+    # =====================================================
+    # TEMPERATURE
+    # =====================================================
+
+    min_temp = profile["min_temp"]
+    max_temp = profile["max_temp"]
+
+    if min_temp <= temperature <= max_temp:
+        score += 30
+        drivers.append("Temperature is favorable")
+
+    elif (
+        min_temp - 5
+        <= temperature
+        <= max_temp + 5
+    ):
+        score += 15
+        drivers.append("Temperature is moderately favorable")
+
+    # =====================================================
+    # HUMIDITY
+    # =====================================================
+
+    if humidity >= 90:
+        score += 30
+        drivers.append("Very high humidity")
+
+    elif humidity >= 80:
+        score += 25
+        drivers.append("High humidity")
+
+    elif humidity >= 70:
+        score += 12
+        drivers.append("Moderately high humidity")
+
+    # =====================================================
+    # PRECIPITATION
+    # =====================================================
+
+    if precipitation >= 2:
+        score += 25
+        drivers.append("Rain/precipitation is present")
+
+    elif precipitation >= 0.5:
+        score += 15
+        drivers.append("Some precipitation is expected")
+
+    elif precipitation_probability >= 60:
+        score += 10
+        drivers.append("Rain probability is elevated")
+
+    # =====================================================
+    # POWDERY MILDEW SPECIAL CASE
+    # =====================================================
+
+    if profile_type == "powdery_mildew":
+
+        # Powdery mildew can favor humid nights while
+        # spreading during warmer/drier periods.
+        if humidity >= 80:
+            score += 10
+
+        if precipitation < 0.5:
+            score += 5
+
+    return min(score, 100), drivers
+
+
+def risk_level(score):
+
+    if score >= 75:
+        return "Very High"
+
+    if score >= 50:
+        return "High"
+
+    if score >= 25:
+        return "Moderate"
+
+    return "Low"
+
+
+def get_weather_risk(disease, latitude, longitude):
+
+    profile = get_weather_profile(disease)
+
+    weather = fetch_json(
+        OPEN_METEO_FORECAST_URL,
+        {
+            "latitude": latitude,
+            "longitude": longitude,
+            "current": (
+                "temperature_2m,"
+                "relative_humidity_2m,"
+                "precipitation,"
+                "wind_speed_10m"
+            ),
+            "hourly": (
+                "temperature_2m,"
+                "relative_humidity_2m,"
+                "precipitation,"
+                "precipitation_probability"
+            ),
+            "forecast_days": 7,
+            "timezone": "auto"
+        }
+    )
+
+    current = weather.get("current", {})
+    hourly = weather.get("hourly", {})
+
+    current_temperature = float(
+        current.get("temperature_2m", 0)
+    )
+
+    current_humidity = float(
+        current.get("relative_humidity_2m", 0)
+    )
+
+    current_precipitation = float(
+        current.get("precipitation", 0)
+    )
+
+    current_wind = float(
+        current.get("wind_speed_10m", 0)
+    )
+
+    current_score, current_drivers = calculate_hourly_risk(
+        profile,
+        current_temperature,
+        current_humidity,
+        current_precipitation,
+        0
+    )
+
+    temperatures = hourly.get("temperature_2m", [])
+    humidities = hourly.get("relative_humidity_2m", [])
+    precipitation = hourly.get("precipitation", [])
+    precipitation_probability = hourly.get(
+        "precipitation_probability",
+        []
+    )
+
+    hourly_scores = []
+    hourly_drivers = []
+
+    for i in range(len(temperatures)):
+
+        temp = float(temperatures[i] or 0)
+
+        humidity = float(
+            humidities[i] or 0
+        )
+
+        rain = float(
+            precipitation[i] or 0
+        )
+
+        rain_probability = float(
+            precipitation_probability[i] or 0
+        )
+
+        score, drivers = calculate_hourly_risk(
+            profile,
+            temp,
+            humidity,
+            rain,
+            rain_probability
+        )
+
+        hourly_scores.append(score)
+
+        hourly_drivers.extend(drivers)
+
+    # -----------------------------------------------------
+    # Next 24 hours
+    # -----------------------------------------------------
+
+    next_24_scores = hourly_scores[:24]
+
+    next_24_score = (
+        max(next_24_scores)
+        if next_24_scores
+        else current_score
+    )
+
+    # -----------------------------------------------------
+    # Next 7 days
+    # -----------------------------------------------------
+
+    next_7_score = (
+        max(hourly_scores)
+        if hourly_scores
+        else current_score
+    )
+
+    # -----------------------------------------------------
+    # Consolidate risk drivers
+    # -----------------------------------------------------
+    # Keep one representative driver per weather factor.
+    # This avoids showing overlapping messages such as
+    # "Very high humidity", "High humidity", and
+    # "Moderately high humidity" together.
+    all_drivers = current_drivers + hourly_drivers
+
+    driver_priority = {
+        "Very warm conditions": ("temperature", 3),
+        "Warm conditions": ("temperature", 2),
+        "Temperature is favorable": ("temperature", 3),
+        "Temperature is moderately favorable": ("temperature", 1),
+        "Low humidity": ("humidity", 3),
+        "Relatively dry air": ("humidity", 2),
+        "Very high humidity": ("humidity", 3),
+        "High humidity": ("humidity", 2),
+        "Moderately high humidity": ("humidity", 1),
+        "Little precipitation": ("precipitation", 1),
+        "Some precipitation is expected": ("precipitation", 2),
+        "Rain/precipitation is present": ("precipitation", 3),
+        "Rain probability is elevated": ("precipitation", 2),
+    }
+
+    selected = {}
+    fallback = []
+
+    for driver in all_drivers:
+        category, priority = driver_priority.get(driver, (None, 0))
+        if category is None:
+            if driver not in fallback:
+                fallback.append(driver)
+            continue
+        if category not in selected or priority > selected[category][1]:
+            selected[category] = (driver, priority)
+
+    unique_drivers = [
+        selected[key][0]
+        for key in ("temperature", "humidity", "precipitation")
+        if key in selected
+    ]
+    unique_drivers.extend(fallback)
+    unique_drivers = unique_drivers[:5]
+
+    # -----------------------------------------------------
+    # Disease-specific message
+    # -----------------------------------------------------
+
+    if profile["type"] == "healthy":
+
+        explanation = (
+            "The model currently predicts a healthy leaf, "
+            "so a disease-specific weather risk is not calculated."
+        )
+
+    elif profile["type"] == "limited":
+
+        explanation = (
+            "Weather can affect plant stress and disease ecology, "
+            "but it is not used here as a direct indicator for this condition."
+        )
+
+    else:
+
+        explanation = (
+            "This score estimates how closely the current and "
+            "forecast weather resembles environmental conditions "
+            "that can favor the detected condition."
+        )
+
+    return {
+        "location": {
+            "latitude": latitude,
+            "longitude": longitude,
+            "timezone": weather.get("timezone")
+        },
+
+        "current_weather": {
+            "temperature_c": round(
+                current_temperature,
+                1
+            ),
+            "humidity_percent": round(
+                current_humidity,
+                1
+            ),
+            "precipitation_mm": round(
+                current_precipitation,
+                2
+            ),
+            "wind_speed_kmh": round(
+                current_wind,
+                1
+            )
+        },
+
+        "disease": disease,
+
+        "weather_profile": {
+            "type": profile["type"],
+            "label": profile["label"]
+        },
+
+        "risk": {
+            "current_score": current_score,
+            "current_level": risk_level(
+                current_score
+            ),
+
+            "next_24h_score": next_24_score,
+            "next_24h_level": risk_level(
+                next_24_score
+            ),
+
+            "next_7d_score": next_7_score,
+            "next_7d_level": risk_level(
+                next_7_score
+            ),
+
+            "drivers": unique_drivers,
+
+            "explanation": explanation
+        },
+
+        "decision_plan": build_decision_plan(disease, 0.0, next_24_score),
+        "source": "Open-Meteo"
+    }
+
+
+# =========================================================
+# WEATHER LOCATION SEARCH
+# =========================================================
+
+@app.get("/geocode")
+def geocode(location: str):
+
+    location = location.strip()
+
+    if not location:
+        raise HTTPException(
+            status_code=400,
+            detail="Location cannot be empty."
+        )
+
+    data = fetch_json(
+        OPEN_METEO_GEOCODING_URL,
+        {
+            "name": location,
+            "count": 5,
+            "language": "en",
+            "format": "json"
+        }
+    )
+
+    results = []
+
+    for item in data.get("results", []):
+
+        results.append({
+            "name": item.get("name"),
+            "country": item.get("country"),
+            "admin1": item.get("admin1"),
+            "latitude": item.get("latitude"),
+            "longitude": item.get("longitude"),
+            "timezone": item.get("timezone")
+        })
+
+    return {
+        "results": results
+    }
+
+
+# =========================================================
+# WEATHER RISK ENDPOINT
+# =========================================================
+
+@app.post("/weather-risk")
+def weather_risk(request: WeatherRiskRequest):
+
+    if not -90 <= request.latitude <= 90:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid latitude."
+        )
+
+    if not -180 <= request.longitude <= 180:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid longitude."
+        )
+
+    return get_weather_risk(
+        request.disease,
+        request.latitude,
+        request.longitude
+    )
+
+
+# =========================================================
 # 10. HOME ROUTE
 # =========================================================
 
@@ -456,7 +1277,8 @@ async def predict(file: UploadFile = File(...)):
 
         "gradcam": gradcam_image,
 
-        "recommendation": recommendation
+        "recommendation": recommendation,
+        "decision_plan": build_decision_plan(predicted_class, confidence_value, None)
     }
 
 

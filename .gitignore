@@ -15,3 +15,12 @@ PlantDoc-Dataset-master/
 
 # Model checkpoints
 *.pth
+
+
+# Local development
+.vscode/
+
+# Generated similarity index
+similarity_embeddings.npy
+similarity_index.faiss
+similarity_metadata.json
