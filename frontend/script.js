@@ -35,11 +35,7 @@ const SIMILAR_CASES_API_URL = "http://127.0.0.1:8000/similar-cases";
 
 
 
-  // =========================================================
-  // SAFE LOCAL LANGUAGE UI
-  // =========================================================
-  // This layer translates interface text only. It performs NO
-  // network requests, so it cannot slow down prediction analysis.
+.
   const translations = {
     en: {
       brand_name: "AI Smart Agriculture", home: "Home", diagnose: "Diagnose", crop_health: "Crop Health", environment: "Environment", assistant: "Assistant", history: "History",
@@ -104,14 +100,7 @@ const SIMILAR_CASES_API_URL = "http://127.0.0.1:8000/similar-cases";
     return (translations[currentLanguage] && translations[currentLanguage][key]) || translations.en[key] || key;
   }
 
-  // =========================================================
-  // MYMEMORY TRANSLATION
-  // =========================================================
-  // The local translations object is kept only as an offline
-  // fallback. Hindi/Marathi uses FastAPI -> MyMemory.
-  //
-  // The API key never reaches the browser.
-  // Translation is batched and cached so Analyze is not delayed.
+  
 
   const TRANSLATION_CACHE_KEY =
     "aiSmartAgricultureMyMemoryTranslationsV1";
@@ -191,9 +180,7 @@ const SIMILAR_CASES_API_URL = "http://127.0.0.1:8000/similar-cases";
       saveTranslationCache();
     }
 
-    // Preserve the exact input order and length. This is important when
-    // some recommendation fields are empty; filtering them would shift
-    // every later translation onto the wrong field.
+    
     return sourceTexts.map((text) =>
       text ? cache[text] || text : ""
     );
@@ -569,16 +556,7 @@ const SIMILAR_CASES_API_URL = "http://127.0.0.1:8000/similar-cases";
   // TOP-3 PREDICTIONS
   // =========================================================
 
-  /*
-   * Your HTML currently has:
-   *
-   * <div class="top-predictions-section">
-   *
-   * and does not necessarily have an id called
-   * "topPredictionsBlock".
-   *
-   * Therefore we use both options.
-   */
+  
 
   const topPredictionsBlock =
     document.getElementById("topPredictionsBlock") ||
@@ -793,10 +771,7 @@ const weatherControls =
   let selectedFile = null;
   let currentPrediction = null;
 
-  /*
-   * Prevents an old image-quality check from updating the
-   * interface after the user selects another image.
-   */
+ 
 
   let qualityCheckToken = 0;
 
@@ -2445,9 +2420,6 @@ function isHealthyPrediction(rawLabel) {
       ? data.top_predictions.slice(0, 3)
       : [];
 
-    // Build a flat translation queue while remembering exactly where every
-    // translated string belongs. Recommendation entries can be strings OR
-    // objects containing title/description/text.
     const sourceTexts = [];
     const add = (text) => {
       const index = sourceTexts.length;
